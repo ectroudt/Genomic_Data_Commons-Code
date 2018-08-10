@@ -1,0 +1,18 @@
+#!/home/ectroudt/anaconda3/bin/python3.6
+
+import os
+import sys
+
+try:
+
+    print(len(os.listdir("/data/rnaSeq/TCGA_Projects/TCGA-STAD/STAD_download_files/")))
+
+except OSError:
+
+    print("\nOSError exception raised, check files in /data/tna_Seq/TCGA_Projects..\n\n")
+    sys.exit()
+
+except Exception:
+
+    "\nException raised, check files in /data/tna_Seq/TCGA_Projects..\n\n"
+    sys.exit()

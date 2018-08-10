@@ -1,0 +1,9 @@
+
+#Right below ' self.clin_cases = json.load(self.clin_file) '
+self.clin_cases = self.clin_cases["data"]["hits"]
+
+ #Right below ' self.meta_cases = json.load(self.meta_file) '
+ self.meta_cases = self.meta_cases["data"]["hits"]
+
+ #Right below ' self.annot_cases = json.load(self.annot_file) '
+ self.annot_cases = self.annot_cases["data"]["hits"]
