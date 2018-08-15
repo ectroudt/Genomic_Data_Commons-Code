@@ -135,7 +135,7 @@ def download_manifest(GDC_Object, entire_Man_Folder=True, first_run=True, split_
     # Subprocess Popen with screen seems to terminate if any warning messages appear when running gdc-client
 
     program = "/usr/local/bin/gdc-client"
-    program_key = "/home/ectroudt/gdc-user-token.2018-07-25T02_03_25.120Z.txt"
+    program_key = "******************"
 
     if first_run:
 
