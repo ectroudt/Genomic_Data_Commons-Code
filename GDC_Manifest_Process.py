@@ -274,15 +274,11 @@ def run_Salmon(project_Name, split_num):
                           split_num_call])
 
     file_dir = "/home/ectroudt/gdc_download_logs/"
-    filename = file_dir + str(project_Name)
+    filename = file_dir + str(project_Name) + "_salmon"
 
     with open(filename, "a") as outfile:
 
         with redirect_stdout(outfile):
-
-            print("\n\n******************Salmon processing******************\n\n")
-
-            print("salmon processes are starting from screen session:  \n")
 
             subprocess.call(["screen", "-ls"], stdout=outfile)
 
