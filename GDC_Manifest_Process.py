@@ -87,7 +87,7 @@ def manifest_eval(data_count, death_count, bamTotal, survivalCutoff=25):
         return True
 
 
-def project_Analysis(GDC_Object, first_run_status):
+def project_Analysis(GDC_Object, first_run_status, split_Val):
 
     proceed = True
 
@@ -107,11 +107,11 @@ def project_Analysis(GDC_Object, first_run_status):
             if bamTotal <= 230:
 
                 # run gdc-client to download ALL BAM files
-                download_manifest(GDC_Object)
+                download_manifest(GDC_Object, split_num=split_Val)
 
             else:
 
-                download_manifest(GDC_Object, entire_Man_Folder=False)
+                download_manifest(GDC_Object, entire_Man_Folder=False, split_num=split_Val)
 
         else:
 
@@ -124,12 +124,12 @@ def project_Analysis(GDC_Object, first_run_status):
         print("\n******Initiating gdc-client for download of second half of manifest files for: "
               + str(GDC_Object.project_id) + "******\n\n")
 
-        download_manifest(GDC_Object, entire_Man_Folder=False, first_run=False)
+        download_manifest(GDC_Object, entire_Man_Folder=False, first_run=False, split_num=split_Val)
 
         return proceed
 
 
-def download_manifest(GDC_Object, entire_Man_Folder=True, first_run=True, split_num=6, parallel_runs=True):
+def download_manifest(GDC_Object, entire_Man_Folder=True, first_run=True, split_num=6):
 
     # Make sure gdc-client auth key has permissions modified (600) so only owner can read and write
     # Subprocess Popen with screen seems to terminate if any warning messages appear when running gdc-client
@@ -145,24 +145,12 @@ def download_manifest(GDC_Object, entire_Man_Folder=True, first_run=True, split_
 
         out_dir = str(create_dir(GDC_Object, obtain_only=True)[0])
 
-    # Not running gdc-client in parallel on different cores
-    if not parallel_runs:
-
-        scr_name = "gdcMan_Download"
-        program_arg = GDC_Object.manifest
+    for j in range(0, split_num):
+        scr_name = "gdcMan_DownloadScreen_" + str(j)
+        program_arg = extract_manifest_portion(GDC_Object, split_num, j, entire_Man_Folder, first_run)
 
         subprocess.Popen(["screen", "-S", scr_name, "-d", "-m", program, "download", "-m", program_arg, "-t",
                           program_key], cwd=out_dir)
-
-    # Running gdc-client in parallel on a specific number (split_num) of cores
-    else:
-
-        for j in range(0, split_num):
-            scr_name = "gdcMan_DownloadScreen_" + str(j)
-            program_arg = extract_manifest_portion(GDC_Object, split_num, j, entire_Man_Folder, first_run)
-
-            subprocess.Popen(["screen", "-S", scr_name, "-d", "-m", program, "download", "-m", program_arg, "-t",
-                              program_key], cwd=out_dir)
 
     print("\n Manifest folder downloading in the following screen sessions: \n")
     subprocess.call(["screen", "-ls"])
@@ -192,7 +180,6 @@ def extract_manifest_portion(GDC_Object, split_num, current_split, entire_Manife
 
     with open(GDC_Object.manifest) as master_manifest:
 
-        print("Opening " + str(master_manifest) + "\n")
         master_manifest = master_manifest.readlines()
         man_header = str(master_manifest[0])
         man_Length = int((len(master_manifest) - 1))
@@ -215,8 +202,6 @@ def extract_manifest_portion(GDC_Object, split_num, current_split, entire_Manife
     manifest_portion = str(GDC_Object.manifest) + "_cp" + str(current_split)
 
     with open(manifest_portion, "w") as man_portion:
-
-        print("Writing to " + str(man_portion) + "\n")
 
         # Does this portion contain the Manifest header?
         if current_split != 0 or not first_run:
@@ -271,23 +256,33 @@ def process_Check():
     return "gdc-client" in str(procs)
 
 
-def run_Salmon():
+def run_Salmon(project_Name, split_num):
 
-    print("\n\n******************Salmon processing******************\n\n")
+    # split_num is set to 6 by default, unless different argument is passed
+    split_num_call = str(split_num)
 
-    program = "/home/ectroudt/anaconda3/bin/python3.6"
-    program_code = "/home/ectroudt/TCGA_Code/GDC_Data_Processing/Automate_to_Salmon.py"
+    for j in range(1, (split_num + 1)):
 
-    salmon_Obj = subprocess.Popen([program, program_code], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                  universal_newlines=True)
+        scr_name = "salmon_processing_" + str(j)
+        program_cmd = "/home/ectroudt/anaconda3/bin/python3.6"
+        program = "/home/ectroudt/TCGA_Code/GDC_Data_Processing/process_salmon_SEAN.py"
+        program_arg_1 = str(j)
 
-    if not salmon_Obj.stderr:
+        subprocess.Popen(["screen", "-S", scr_name, "-d", "-m", program_cmd, program, program_arg_1, "--split_Num",
+                          split_num_call])
 
-        print(salmon_Obj.stdout)
+    file_dir = "/home/ectroudt/gdc_download_logs/"
+    filename = file_dir + str(project_Name)
 
-    else:
+    with open(filename, "a") as outfile:
 
-        print("Error found : " + str(salmon_Obj.stderr))
+        with redirect_stdout(outfile):
+
+            print("\n\n******************Salmon processing******************\n\n")
+
+            print("salmon processes are starting from screen session:  \n")
+
+            subprocess.call(["screen", "-ls"], stdout=outfile)
 
 
 def main():
@@ -295,18 +290,20 @@ def main():
     # System argument MUST contain absolute path of TCGA-Project folder
     tcga_project_files = sys.argv[1]
 
-    first_run_status = bool(sys.argv[2])
+    first_run_status = ((sys.argv[2]) == "True")
+
+    split_Val = int(sys.argv[3])
 
     TCGA_manifest = GDCprocess(tcga_project_files)
     TCGA_manifest.file_summary()
 
-    if project_Analysis(TCGA_manifest, first_run_status):
+    if project_Analysis(TCGA_manifest, first_run_status, split_Val):
 
         # monitor progress of gdc-client until it's finished
         process_Control(TCGA_manifest.project_id)
 
         # run salmon on downloaded BAM files
-        run_Salmon()
+        run_Salmon(TCGA_manifest.project_id, split_Val)
 
 
 if __name__ == '__main__':
