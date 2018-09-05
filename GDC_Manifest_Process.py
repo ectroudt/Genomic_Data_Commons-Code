@@ -221,6 +221,8 @@ def extract_manifest_portion(GDC_Object, split_num, current_split, entire_Manife
 
 def process_Control(project_Name):
 
+    sleep(120)
+
     download_status = process_Check()
 
     elapse_time = 2
