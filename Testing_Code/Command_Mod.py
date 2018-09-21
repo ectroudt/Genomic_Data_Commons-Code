@@ -23,11 +23,11 @@ def command_Mod(testing=False):
 
                     w.write(str(fileline))
 
-        with open("/home/ectroudt/TCGA_Code/GDC_Data_Processing/check_Abundances") as x:
+        with open("/home/ectroudt/TCGA_Code/GDC_Data_Processing/check_Project_Data") as x:
 
             download_Pro = x.readlines()
 
-        with open("/home/ectroudt/TCGA_Code/GDC_Data_Processing/check_Abundances", "w") as w:
+        with open("/home/ectroudt/TCGA_Code/GDC_Data_Processing/check_Project_Data", "w") as w:
 
             for fileline in download_Pro:
 

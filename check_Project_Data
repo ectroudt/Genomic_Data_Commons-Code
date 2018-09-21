@@ -1,0 +1,54 @@
+#!/home/ectroudt/anaconda3/bin/python3.6
+
+import os
+import sys
+import argparse
+
+parser = argparse.ArgumentParser(description="Determine status of gdc-client or salmon processes")
+
+
+group = parser.add_mutually_exclusive_group()
+group.add_argument("--downloads", dest="status", action="store_true",
+                       help="Determine if checking status of gdc-cleint downloads")
+group.add_argument("--abundances", dest="status", action="store_false",
+                       help="Determine if checking status of salmon processes")
+
+prog_Arg = parser.parse_args()
+
+data_file_path = ""
+
+if prog_Arg.status:
+
+    data_file = "download"
+
+else:
+
+    data_file = "Abundances"
+
+
+for project_folder in os.listdir("/data/rnaSeq/TCGA_Projects/"):
+
+    if "TCGA" in str(project_folder):
+
+        project_Dir = os.path.join("/data/rnaSeq/TCGA_Projects/", project_folder)
+
+        for data_Dir in os.listdir(project_Dir):
+
+            if data_file in str(data_Dir):
+
+                data_file_path = os.path.join(project_Dir, data_Dir) + "/"
+
+
+try:
+
+    print(len(os.listdir(data_file_path)))
+
+except OSError:
+
+    print("\nOSError exception raised, check files in /data/tna_Seq/TCGA_Projects..\n\n")
+    sys.exit()
+
+except Exception:
+
+    "\nException raised, check files in /data/tna_Seq/TCGA_Projects..\n\n"
+    sys.exit()

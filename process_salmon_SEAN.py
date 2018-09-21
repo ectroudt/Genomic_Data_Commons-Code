@@ -23,8 +23,7 @@ s = (Args.split_Num - 1)
 
 indirname = ""
 preprefix = ""
-indexname = '/home/swest/project-isoform_survival/data/indexes/index_ensembl_salmon_quasi'
-gname = '/home/swest/project-isoform_survival/data/references/ensembl/Homo_sapiens.GRCh38.cdna.all.fa'
+indexname = '/home/ectroudt/salmon_Data/index_ensembl_salmon_quasi_NewVers'
 
 
 for project_folder in os.listdir("/data/rnaSeq/TCGA_Projects/"):
@@ -57,7 +56,7 @@ for ndir in ndirs:
     ndir += '/'
     ubamfile = [ndir + x for x in os.listdir(ndir) if '.bam' in x and 'sorted' not in x][0]
     prefix = preprefix + ubamfile.split('/')[-1].replace('.bam', '')
-    
+
     print(ubamfile)
     print('sorting bam:')
     sbamfile = bf.bam_to_sorted_bam(ubamfile)
